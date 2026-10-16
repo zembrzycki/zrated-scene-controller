@@ -16,6 +16,14 @@
 # Do NOT put any !secret lookups in this file - ESPHome does not
 # support secrets inside remote/git packages. wifi:, api:, and ota:
 # stay in each device's local YAML.
+#
+# ESPHome 2026.9 compatibility changes:
+#   - image: now uses platform list form (platform: file / online_image).
+#     The old top-level online_image: block is folded into image:.
+#   - lvgl theme: no longer accepts `styles:` - properties set directly.
+#     The unused mdi_icon_on / mdi_icon_off style_definitions removed.
+#   - weather sensors now use ${weather_entity} instead of hardcoding
+#     weather.beacon (same default value, now overridable per device).
 # =================================================================
 substitutions:
   # Defaulted to the Office panel's real values. A device's local YAML
@@ -25,8 +33,8 @@ substitutions:
   # the three quick_btn_* groups are the ones most likely to need it,
   # since those are room-specific by nature.
   #
-  # Compile-time fallback only for online_image.url (ESPHome requires a
-  # literal, valid URL at build time). The real value is pushed at
+  # Compile-time fallback only for the online image url (ESPHome requires
+  # a literal, valid URL at build time). The real value is pushed at
   # runtime by ha_esphome_image_url (see text_sensor section).
   ha_base_url: "http://ha.7p.net"
   # HA sensor entity that reports the live, fully-resolved album art URL.
@@ -34,7 +42,7 @@ substitutions:
   # BLE Presence Device - same tracked device (phone) for every panel.
   ble_presence_device: "device_tracker.ble_iphone17_bermuda_tracker"
   ble_presence_area: "Office"
-# Internet ISP Status
+  # Internet ISP Status
   router_isp: "sensor.network_router"
   # Light Buttons
   light_entity_01: "light.kitchen_counter"
@@ -461,17 +469,24 @@ font:
     ]
 http_request:
   timeout: 10s
+# ---- Images (ESPHome 2026.7+ platform form) ----
+# Static images use platform: file. The album art (formerly a separate
+# top-level online_image: block) is now platform: online_image under the
+# same image: list. Same id, so lvgl.image.update / online_image.set_url /
+# component.update references elsewhere are unchanged.
 image:
-  - id: boot_logo
+  - platform: file
+    id: boot_logo
     file: "custom/logo.bmp"
     type: RGB565
     resize: 200x200
-  - id: media_blank_art
+  - platform: file
+    id: media_blank_art
     file: "custom/blank_album.bmp"
     type: RGB565
     resize: 200x200
-online_image:
-  - id: media_online_art
+  - platform: online_image
+    id: media_online_art
     type: RGB565
     format: BMP
     url: "${ha_base_url}/local/media_album.bmp"
@@ -842,7 +857,8 @@ text_sensor:
   # ESPHome-facing URL for the converted album art image, published by the
   # convert_media_album_art integration. Whenever the URL this entity
   # reports changes (new host, new port, moved behind a proxy), push it
-  # into online_image and re-download - no reflash required.
+  # into the online image and re-download - no reflash required.
+  # (online_image.set_url re-downloads by default; update: true is explicit.)
   - platform: homeassistant
     id: ha_esphome_image_url
     entity_id: ${esphome_image_url_entity}
@@ -852,6 +868,7 @@ text_sensor:
         - online_image.set_url:
             id: media_online_art
             url: !lambda 'return x;'
+            update: true
   - platform: homeassistant
     id: util_dehumidifier_action
     entity_id: ${hvac_dehumidifier}
@@ -914,32 +931,32 @@ sensor:
     internal: true
   - platform: homeassistant
     id: weather_temp
-    entity_id: weather.beacon
+    entity_id: ${weather_entity}
     attribute: temperature
     internal: true
   - platform: homeassistant
     id: weather_humidity
-    entity_id: weather.beacon
+    entity_id: ${weather_entity}
     attribute: humidity
     internal: true
   - platform: homeassistant
     id: weather_pressure
-    entity_id: weather.beacon
+    entity_id: ${weather_entity}
     attribute: pressure
     internal: true
   - platform: homeassistant
     id: weather_wind_speed
-    entity_id: weather.beacon
+    entity_id: ${weather_entity}
     attribute: wind_speed
     internal: true
   - platform: homeassistant
     id: weather_wind_bearing
-    entity_id: weather.beacon
+    entity_id: ${weather_entity}
     attribute: wind_bearing
     internal: true
   - platform: homeassistant
     id: weather_precipitation
-    entity_id: weather.beacon
+    entity_id: ${weather_entity}
     attribute: precipitation
     internal: true
   - platform: homeassistant
@@ -1025,6 +1042,9 @@ lvgl:
             - light.turn_on:
                 id: display_backlight
                 brightness: !lambda "return id(display_brightness_level).state / 100.0f;"
+  # 2026.9: theme entries can't reference styles: anymore. The former
+  # mdi_icon_off / mdi_icon_on styles only set text_color, so those
+  # values are inlined here (white default, gold when checked).
   theme:
     obj:
       border_width: 0
@@ -1034,13 +1054,9 @@ lvgl:
       bg_color: 0x333333
       bg_grad_dir: VER
       text_color: 0xFFFFFF
-      styles:
-        - mdi_icon_off
       checked:
         bg_color: 0x333333
-        text_color: 0xFFFFFF
-        styles:
-          - mdi_icon_on
+        text_color: 0xCC9900
   style_definitions:
     - id: header_style
       bg_color: 0x333333
@@ -1064,10 +1080,6 @@ lvgl:
       border_width: 0
       border_opa: 0
       pad_all: 0
-    - id: mdi_icon_off
-      text_color: 0xFFFFFF
-    - id: mdi_icon_on
-      text_color: 0xCC9900
   pages:
     # Main Page
     - id: main_page
