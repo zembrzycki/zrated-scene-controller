@@ -79,7 +79,7 @@ substitutions:
   fan_name_02: "Office"
   fan_name_03: "Dining"
   # Climate
-  climate_entity_01: "climate.nsp3_thermostat"
+  climate_entity_01: "climate.thermostat"
   hvac_fan_switch: "switch.thermostat_fan_speed"
   hvac_current: "sensor.ac_current"
   hvac_chiller: "sensor.hvac_supply_water_temperature"
