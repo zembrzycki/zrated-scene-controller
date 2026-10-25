@@ -1602,11 +1602,12 @@ lvgl:
                   text_color: 0x666666
                   align: center
         ## Setpoint dial: 270° arc, open at the bottom for the -/+ buttons.
-        ## Arc centre is 20 px below the screen centre; everything below is placed from that.
+        ## Arc centre is 14 px below the screen centre; everything below is placed from that.
+        ## Fits between the header (48 px) and the footer bar (54 px).
         - arc:
             id: th_setpoint_arc
             align: CENTER
-            y: 20
+            y: 14
             width: 380
             height: 380
             arc_width: 22
@@ -1642,7 +1643,7 @@ lvgl:
             text_font: roboto24
             text_color: 0xCCCCCC
             align: CENTER
-            y: -78
+            y: -84
         # Setpoint: big number + small superscript unit
         - label:
             id: th_setpoint_label
@@ -1650,7 +1651,7 @@ lvgl:
             text_font: roboto_light_100
             text_color: 0xFFFFFF
             align: CENTER
-            y: 8
+            y: 2
         - label:
             id: th_unit_label
             text: "°F"
@@ -1665,7 +1666,7 @@ lvgl:
         - obj:
             id: th_room_row
             align: CENTER
-            y: 82
+            y: 76
             width: SIZE_CONTENT
             height: SIZE_CONTENT
             bg_opa: TRANSP
@@ -1694,10 +1695,10 @@ lvgl:
             id: btn_th_minus
             align: CENTER
             x: -52
-            y: 172
-            width: 68
-            height: 68
-            radius: 34
+            y: 142
+            width: 60
+            height: 60
+            radius: 30
             bg_opa: TRANSP
             border_width: 2
             border_color: 0x888888
@@ -1717,10 +1718,10 @@ lvgl:
             id: btn_th_plus
             align: CENTER
             x: 52
-            y: 172
-            width: 68
-            height: 68
-            radius: 34
+            y: 142
+            width: 60
+            height: 60
+            radius: 30
             bg_opa: TRANSP
             border_width: 2
             border_color: 0x888888
